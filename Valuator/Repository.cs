@@ -42,14 +42,15 @@ namespace Valuator
             m_db.StringSet(key, value);
         }
 
-        public List<string> GetValuesByKey(string key)
+        public List<string> GetValuesByKey(string key) //TEXT-
         {
             List<string> result = [];
             foreach (var k in GetAllKeys())
             {
-                if (k.Contains(key))
+                string? val = m_db.StringGet(k);
+                if (k.Contains(key) && val != null)
                 {
-                    result.Add(m_db.StringGet(k));
+                    result.Add(val);
                 }
             }
             return result;
@@ -59,7 +60,7 @@ namespace Valuator
         {
             List<string> listKeys = [];
             var keys = m_server.Keys();
-            foreach (string key in keys)
+            foreach (string? key in keys)
             {
                 if (key != null)
                 {

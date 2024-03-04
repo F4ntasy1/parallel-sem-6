@@ -25,7 +25,11 @@ public class SummaryModel : PageModel
     {
         _logger.LogDebug(id);
 
-        Rank = repository.Get("RANK-" + id)?[..5] ?? "0";
+        Rank = repository.Get("RANK-" + id) ?? "0";
+        if (Rank.Length > 5)
+        {
+            Rank = Rank[..5];
+        }
         Similarity = repository.Get("SIMILARITY-" + id)?[..1] ?? "0";
     }
 }
