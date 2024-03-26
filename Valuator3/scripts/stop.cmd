@@ -2,5 +2,4 @@
 cd ../nginx
 nginx -s stop
 taskkill /IM dotnet.exe /F
-cd ../nats
-nats-server --signal stop
+taskkill /IM nats-server.exe /F
