@@ -50,7 +50,7 @@ public class IndexModel : PageModel
         ConnectionFactory cf = new();
         IConnection c = cf.CreateConnection();
 
-        var msgBytes = Encoding.UTF8.GetBytes($"{similarityKey},{similarity}");
+        var msgBytes = Encoding.UTF8.GetBytes($"{similarityKey};{similarity}");
         c.Publish("SimilarityCalculated", msgBytes);
     }
 
@@ -72,7 +72,7 @@ public class IndexModel : PageModel
 
         using (IConnection c = cf.CreateConnection())
         {
-            string m = $"{textKey},{rankKey}";
+            string m = $"{textKey};{rankKey}";
             byte[] data = Encoding.UTF8.GetBytes(m);
             do
             {

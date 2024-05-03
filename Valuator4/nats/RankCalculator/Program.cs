@@ -4,7 +4,6 @@ using System.Text;
 
 namespace RankCalculator
 {
-    // #2 подумать про конкурирующих потребителей
     class Program
     {
         private static Repository ?m_repository;
@@ -50,7 +49,7 @@ namespace RankCalculator
         // Возвращает строку, которая содержит rankKey и значение rank
         private static string ProcessingValuatorMessage(string msg)
         {
-            string[] splittedMsg = msg.Split(',');
+            string[] splittedMsg = msg.Split(';');
 
             if (splittedMsg.Length != 2)
             {
@@ -69,7 +68,7 @@ namespace RankCalculator
 
             m_repository?.Set(rankKey, rank);
 
-            return $"{rankKey},{rank}";
+            return $"{rankKey};{rank}";
         }
 
         private static double GetRank(string text)

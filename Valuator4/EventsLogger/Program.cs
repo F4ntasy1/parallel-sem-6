@@ -12,7 +12,7 @@ namespace EventsLogger
             c.SubscribeAsync("RankCalculated", (sender, args) =>
             {
                 string message = Encoding.UTF8.GetString(args.Message.Data);
-                string[] splittedMsg = message.Split(',');
+                string[] splittedMsg = message.Split(';');
 
                 Console.WriteLine(message);
 
@@ -34,7 +34,7 @@ namespace EventsLogger
                 var messageBytes = args.Message.Data;
 
                 string message = Encoding.UTF8.GetString(messageBytes);
-                string[] splittedMsg = message.Split(',');
+                string[] splittedMsg = message.Split(';');
 
                 if (splittedMsg.Length < 2)
                 {
