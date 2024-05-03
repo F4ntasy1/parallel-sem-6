@@ -29,16 +29,29 @@ public class IndexModel : PageModel
         string id = Guid.NewGuid().ToString();
 
         string similarityKey = "SIMILARITY-" + id;
-        repository.Set(similarityKey, GetSimilarity(text));
+        int similarity = GetSimilarity(text);
+        repository.Set(similarityKey, similarity);
 
         string textKey = "TEXT-" + id;
         repository.Set(textKey, text);
+
+        PublishSimilarity(similarityKey, similarity);
 
         CancellationTokenSource cts = new();
         Task t = Task.Factory.StartNew(() => CalculateRankAsync(cts.Token, textKey, "RANK-" + id), cts.Token);
         t.Wait();
 
         return Redirect($"summary?id={id}");
+    }
+
+    // Публикация в nats
+    private void PublishSimilarity(string similarityKey, int similarity)
+    {
+        ConnectionFactory cf = new();
+        IConnection c = cf.CreateConnection();
+
+        var msgBytes = Encoding.UTF8.GetBytes($"{similarityKey},{similarity}");
+        c.Publish("SimilarityCalculated", msgBytes);
     }
 
     private int GetSimilarity(string text)

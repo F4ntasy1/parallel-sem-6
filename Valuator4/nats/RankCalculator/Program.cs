@@ -23,9 +23,14 @@ namespace RankCalculator
                 Console.WriteLine("Consuming from subject {1}", m, args.Message.Subject);
                 try
                 {
-                    ProcessingValuatorMessage(m);
+                    string msg = ProcessingValuatorMessage(m);
                     Console.WriteLine("Message successfully processed");
-                } catch (ArgumentException ex)
+
+                    // Публикация в nats
+                    var msgBytes = Encoding.UTF8.GetBytes(msg);
+                    c.Publish("RankCalculated", msgBytes);
+                }
+                catch (ArgumentException ex)
                 {
                     Console.WriteLine(ex.Message);
                 }
@@ -42,7 +47,8 @@ namespace RankCalculator
             c.Close();
         }
 
-        private static void ProcessingValuatorMessage(string msg)
+        // Возвращает строку, которая содержит rankKey и значение rank
+        private static string ProcessingValuatorMessage(string msg)
         {
             string[] splittedMsg = msg.Split(',');
 
@@ -51,16 +57,19 @@ namespace RankCalculator
                 throw new ArgumentException("Wrong message format");
             }
 
-            Console.WriteLine(1);
-            string? text = m_repository?.Get(splittedMsg[0]);
-            Console.WriteLine(2);
+            string textKey = splittedMsg[0];
+            string rankKey = splittedMsg[1];
+
+            string? text = m_repository?.Get(textKey);
             if (text == null)
             {
-                throw new KeyNotFoundException($"Not found by key {splittedMsg[0]}");
+                throw new KeyNotFoundException($"Not found by key {textKey}");
             }
+            double rank = GetRank(text);
 
-            m_repository?.Set(splittedMsg[1], GetRank(text));
-            Console.WriteLine(3);
+            m_repository?.Set(rankKey, rank);
+
+            return $"{rankKey},{rank}";
         }
 
         private static double GetRank(string text)
