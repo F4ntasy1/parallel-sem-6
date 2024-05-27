@@ -53,17 +53,19 @@ class Program
             string value = Console.ReadLine() ?? throw new Exception("Read failed");
             int x = int.Parse(value);
 
-            int y;
+            Console.WriteLine("Readed value : " + x);
 
             if (!isInit)
             {
-                y = GetValueFromSocket(listener);
+                int y = GetValueFromSocket(listener);
                 x = x > y ? x : y;
             }
 
             int bytesSent = SendMessage(x.ToString(), sender, senderEP);
             x = GetValueFromSocket(listener);
             bytesSent = SendMessage(x.ToString(), sender, senderEP);
+
+            Console.WriteLine("Result value : " + x);
 
             sender.Shutdown(SocketShutdown.Both);
             sender.Close();
@@ -91,7 +93,10 @@ class Program
     private static int SendMessage(string message, Socket socket, IPEndPoint endpoint)
     {
         byte[] msg = Encoding.UTF8.GetBytes(message);
-        socket.Connect(endpoint);
+        if (!socket.Connected)
+        {
+            socket.Connect(endpoint);
+        }
         return socket.Send(msg);
     }
 }
