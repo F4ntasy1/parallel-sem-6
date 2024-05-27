@@ -1,0 +1,23 @@
+ln -s /etc/redis/redisMain.conf /etc/redis/redis.conf
+ln -s /etc/redis/redisRus.conf /etc/redis/redis.conf
+ln -s /etc/redis/redisEU.conf /etc/redis/redis.conf
+ln -s /etc/redis/redisOther.conf /etc/redis/redis.conf
+
+redis-server start
+redis-server stop
+
+redis-cli -h localhost -p 6002
+
+rm /etc/redis/redis.conf
+
+ps -ef|grep redis|grep -v grep
+
+redis-cli -h localhost -p 6000 shutdown
+redis-cli -h localhost -p 6001 shutdown
+redis-cli -h localhost -p 6002 shutdown
+redis-cli -h localhost -p 6003 shutdown
+
+redis-server /etc/redis/redisSegmenter.conf 
+redis-server /etc/redis/redisRus.conf 
+redis-server /etc/redis/redisEU.conf 
+redis-server /etc/redis/redisOther.conf 
