@@ -32,21 +32,21 @@ class Program
         IPAddress nextIpAddress = IPAddress.Parse(nextHost);
         IPAddress currIpAddress = IPAddress.Parse("127.0.0.1");
 
-        IPEndPoint senderEP = new(nextIpAddress, nextPort);
-        IPEndPoint listenerEP = new(currIpAddress, listeningPort);
+        IPEndPoint nextEP = new(nextIpAddress, nextPort);
+        IPEndPoint currEP = new(currIpAddress, listeningPort);
 
-        Socket sender = new(
+        Socket nextSocket = new(
             nextIpAddress.AddressFamily,
             SocketType.Stream,
             ProtocolType.Tcp);
 
-        Socket listener = new(
+        Socket currSocket = new(
             currIpAddress.AddressFamily,
             SocketType.Stream,
             ProtocolType.Tcp);
 
-        listener.Bind(listenerEP);
-        listener.Listen(10);
+        currSocket.Bind(currEP);
+        currSocket.Listen(10);
 
         try
         {
@@ -55,20 +55,14 @@ class Program
 
             Console.WriteLine("Readed value : " + x);
 
-            if (!isInit)
+            if (isInit)
             {
-                int y = GetValueFromSocket(listener);
-                x = x > y ? x : y;
+                ExecuteForInitProcess(x, nextSocket, nextEP, currSocket);
             }
-
-            int bytesSent = SendMessage(x.ToString(), sender, senderEP);
-            x = GetValueFromSocket(listener);
-            bytesSent = SendMessage(x.ToString(), sender, senderEP);
-
-            Console.WriteLine("Result value : " + x);
-
-            sender.Shutdown(SocketShutdown.Both);
-            sender.Close();
+            else
+            {
+                ExecuteForBaseProcess(x, nextSocket, nextEP, currSocket);
+            }
         }
         catch (Exception ex)
         {
@@ -76,16 +70,51 @@ class Program
         }
     }
 
+    private static void ExecuteForInitProcess(
+        int x, Socket nextSocket, IPEndPoint nextEP, Socket currSocket)
+    {
+        int bytesSent = SendMessage(x.ToString(), nextSocket, nextEP);
+
+        Socket currSocketWithNewConn = currSocket.Accept();
+
+        x = GetValueFromSocket(currSocketWithNewConn);
+        Console.WriteLine("Result value : " + x);
+
+        bytesSent = SendMessage(x.ToString(), nextSocket, nextEP);
+
+        nextSocket.Shutdown(SocketShutdown.Both);
+        nextSocket.Close();
+        currSocketWithNewConn.Shutdown(SocketShutdown.Both);
+        currSocketWithNewConn.Close();
+    }
+
+    private static void ExecuteForBaseProcess(
+        int x, Socket nextSocket, IPEndPoint nextEP, Socket currSocket)
+    {
+        Socket currSocketWithNewConn = currSocket.Accept();
+
+        int y = GetValueFromSocket(currSocketWithNewConn);
+        int max = x > y ? x : y;
+
+        Console.WriteLine("Max value : " + max);
+
+        int bytesSent = SendMessage(max.ToString(), nextSocket, nextEP);
+
+        x = GetValueFromSocket(currSocketWithNewConn);
+        Console.WriteLine("Result value : " + x);
+
+        bytesSent = SendMessage(x.ToString(), nextSocket, nextEP);
+
+        nextSocket.Shutdown(SocketShutdown.Both);
+        nextSocket.Close();
+        currSocketWithNewConn.Shutdown(SocketShutdown.Both);
+        currSocketWithNewConn.Close();
+    }
+
     private static int GetValueFromSocket(Socket socket)
     {
-        Socket handler = socket.Accept();
-
         byte[] buf = new byte[1024];
-        int bytesCount = handler.Receive(buf);
-
-        handler.Shutdown(SocketShutdown.Both);
-        handler.Close();
-
+        int bytesCount = socket.Receive(buf);
         return int.Parse(Encoding.UTF8.GetString(buf, 0, bytesCount));
     }
 
