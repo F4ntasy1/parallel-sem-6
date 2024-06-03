@@ -12,10 +12,10 @@ public class SummaryModel : PageModel
     private readonly ILogger<SummaryModel> _logger;
     private readonly Repository repository;
 
-    public SummaryModel(ILogger<SummaryModel> logger, IConfiguration configuration)
+    public SummaryModel(ILogger<SummaryModel> logger)
     {
         _logger = logger;
-        repository = new Repository(configuration);
+        repository = new Repository();
     }
 
     public string? Rank { get; set; }

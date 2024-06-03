@@ -1,5 +1,10 @@
 @echo off
 
+start cmd /c redis-server ./rus.conf
+start cmd /c redis-server ./eu.conf
+start cmd /c redis-server ./other.conf
+start cmd /c redis-server ./segmenter.conf
+
 cd ../nginx
 start nginx
 
@@ -14,5 +19,5 @@ start cmd /c dotnet run --urls "http://0.0.0.0:5001"
 start cmd /c dotnet run --urls "http://0.0.0.0:5002"
 
 cd ../EventsLogger
-start "" dotnet run
-start "" dotnet run
+start cmd /c dotnet run --urls "http://0.0.0.0:5004"
+start cmd /c dotnet run --urls "http://0.0.0.0:5005"

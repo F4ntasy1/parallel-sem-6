@@ -44,3 +44,10 @@ D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\obj\Debug\net8
 D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\obj\Debug\net8.0\RankCalculator.pdb
 D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\obj\Debug\net8.0\RankCalculator.genruntimeconfig.cache
 D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\obj\Debug\net8.0\ref\RankCalculator.dll
+D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\bin\Debug\net8.0\Microsoft.Extensions.Caching.Abstractions.dll
+D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\bin\Debug\net8.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll
+D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
+D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
+D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\bin\Debug\net8.0\NetTopologySuite.dll
+D:\Programming\Study\parallel-sem-6\Valuator5\nats\RankCalculator\bin\Debug\net8.0\NRedisStack.dll

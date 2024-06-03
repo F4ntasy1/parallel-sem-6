@@ -12,13 +12,11 @@ public class IndexModel : PageModel
 {
     private readonly ILogger<IndexModel> _logger;
     private readonly Repository repository;
-    private readonly IConfiguration _configuration;
 
-    public IndexModel(ILogger<IndexModel> logger, IConfiguration configuration)
+    public IndexModel(ILogger<IndexModel> logger)
     {
-        _configuration = configuration;
         _logger = logger;
-        repository = new Repository(configuration);
+        repository = new Repository();
     }
 
     public void OnGet()
@@ -31,16 +29,18 @@ public class IndexModel : PageModel
         _logger.LogDebug(text);
 
         string id = Guid.NewGuid().ToString();
+        string region = RegionTypes.COUNTRY_TO_REGION[country];
 
-        repository.StoreText(id, text, country);
+        int similarity = GetSimilarity(text, region);
 
-        int similarity = GetSimilarity(text);
+        repository.StoreText(id, text, region);
+
         repository.StoreSimilarity(id, similarity);
 
         PublishSimilarity(id, similarity);
 
         CancellationTokenSource cts = new();
-        Task t = Task.Factory.StartNew(() => CalculateRankAsync(cts.Token, id, country), cts.Token);
+        Task t = Task.Factory.StartNew(() => CalculateRankAsync(cts.Token, id, region), cts.Token);
         t.Wait();
 
         return Redirect($"summary?id={id}");
@@ -56,9 +56,9 @@ public class IndexModel : PageModel
         c.Publish("SimilarityCalculated", msgBytes);
     }
 
-    private int GetSimilarity(string text)
+    private int GetSimilarity(string text, string country)
     {
-        foreach (var value in repository.GetValuesByKey("TEXT"))
+        foreach (var value in repository.GetValuesByKey("TEXT", country))
         {
             if (value == text)
             {
@@ -68,7 +68,7 @@ public class IndexModel : PageModel
         return 0;
     }
 
-    private async Task CalculateRankAsync(CancellationToken ct, string id, string country)
+    private async Task CalculateRankAsync(CancellationToken ct, string id, string region)
     {
         ConnectionFactory cf = new();
 
@@ -77,8 +77,8 @@ public class IndexModel : PageModel
             var message = new
             {
                 Id = id,
-                HostAndPort = _configuration.GetConnectionString(RegionTypes.COUNTRY_TO_REGION[country]),
-                Region = RegionTypes.COUNTRY_TO_REGION[country]
+                HostAndPort = Environment.GetEnvironmentVariable(region),
+                Region = region
             };
 
             byte[] data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message));

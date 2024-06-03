@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using NATS.Client;
 using NRedisStack;
 using NRedisStack.RedisStackCommands;
 using StackExchange.Redis;
@@ -12,22 +13,20 @@ namespace Valuator
         private readonly Dictionary<string, IDatabase> _regionToDbInstance = [];
 
         private readonly IDatabase _dbSegmenter;
-        private readonly IConfiguration? _configuration;
 
-        public Repository(IConfiguration? configuration = null)
+        public Repository()
         {
-            _configuration = configuration;
             _regionToDbConection.Add(
                 RegionTypes.RUS,
-                ConnectionMultiplexer.Connect(configuration.GetConnectionString(RegionTypes.RUS))
+                ConnectionMultiplexer.Connect(Environment.GetEnvironmentVariable(RegionTypes.RUS)!)
             );
             _regionToDbConection.Add(
                 RegionTypes.EU,
-                ConnectionMultiplexer.Connect(configuration.GetConnectionString(RegionTypes.EU))
+                ConnectionMultiplexer.Connect(Environment.GetEnvironmentVariable(RegionTypes.EU)!)
             );
             _regionToDbConection.Add(
                 RegionTypes.OTHER,
-                ConnectionMultiplexer.Connect(configuration.GetConnectionString(RegionTypes.OTHER))
+                ConnectionMultiplexer.Connect(Environment.GetEnvironmentVariable(RegionTypes.OTHER)!)
             );
 
             _regionToDbInstance.Add(
@@ -43,7 +42,9 @@ namespace Valuator
                 _regionToDbConection[RegionTypes.OTHER].GetDatabase()
             );
 
-            _dbSegmenter = ConnectionMultiplexer.Connect(configuration.GetConnectionString("db_segmenter")).GetDatabase();
+            _dbSegmenter = ConnectionMultiplexer.Connect(
+                Environment.GetEnvironmentVariable(RegionTypes.SEGMENTER)!
+            ).GetDatabase();
         }
 
         public string? Get(string id, string keyName)
@@ -58,10 +59,8 @@ namespace Valuator
             return _regionToDbInstance[region].StringGet($"{keyName}-{id}");
         }
 
-        public void StoreText(string id, string text, string country)
+        public void StoreText(string id, string text, string region)
         {
-            string region = RegionTypes.COUNTRY_TO_REGION[country];
-
             LogLookup(id, region);
             _regionToDbInstance[region].StringSet($"TEXT-{id}", text);
             _dbSegmenter.StringSet(id, region);
@@ -95,28 +94,22 @@ namespace Valuator
             _regionToDbInstance[region].StringSet($"SIMILARITY-{id}", similarity);
         }
 
-        public List<string> GetValuesByKey(string key) //TEXT-
+        public List<string> GetValuesByKey(string key, string region) //TEXT-
         {
-            if (_configuration == null)
-            {
-                throw new Exception("Configuration is null");
-            }
-
             List<string> result = [];
-            
-            foreach (var connection in _regionToDbConection)
-            {
-                var keys = connection.Value.GetServer(_configuration.GetConnectionString(connection.Key)).Keys();
 
-                foreach (string? k in keys)
+            var connection = _regionToDbConection[region];
+
+            var keys = connection.GetServer(Environment.GetEnvironmentVariable(region)!).Keys();
+
+            foreach (string? k in keys)
+            {
+                if (k != null && k.Contains(key))
                 {
-                    if (k != null && k.Contains(key))
+                    var val = _regionToDbInstance[region].StringGet(k);
+                    if (!val.IsNull)
                     {
-                        var val = _regionToDbInstance[connection.Key].StringGet(key);
-                        if (!val.IsNull)
-                        {
-                            result.Add(val);
-                        }
+                        result.Add(val);
                     }
                 }
             }
@@ -127,6 +120,11 @@ namespace Valuator
         private List<string> GetIds(string region)
         {
             var ids = _regionToDbInstance[region].StringGet("IDS");
+            if (ids.IsNull)
+            {
+                return [];
+            }
+
             return JsonSerializer.Deserialize<List<string>>(ids);
         }
 

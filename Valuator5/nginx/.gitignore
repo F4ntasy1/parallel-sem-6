@@ -1,6 +1,9 @@
 contrib/*
+auto/*
 docs/*
 html/*
 logs/*
 temp/*
+man/*
+src/*
 *.exe

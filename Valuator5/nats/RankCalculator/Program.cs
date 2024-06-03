@@ -17,7 +17,7 @@ namespace RankCalculator
         static void Main(string[] args)
         {
             ConnectionFactory cf = new();
-            using IConnection c = cf.CreateConnection("127.0.0.1:4222");
+            using IConnection c = cf.CreateConnection();
 
             var s = c.SubscribeAsync("valuator.processing.rank", "rank_calculator", (sender, args) =>
             {
@@ -39,7 +39,7 @@ namespace RankCalculator
 
                 string rank = GetRank(text).ToString();
 
-                db.StringSetAsync("RANK-" + id, rank);
+                db.StringSet("RANK-" + id, rank);
 
                 Console.WriteLine($"Calculated rank for id {id} and region {region}");
 

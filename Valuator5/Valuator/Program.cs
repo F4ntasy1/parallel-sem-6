@@ -4,13 +4,15 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        DotNetEnv.Env.Load();
+
         var builder = WebApplication.CreateBuilder(args);
         
         // Add services to the container.
         builder.Services.AddRazorPages();
 
         builder.Services.AddStackExchangeRedisCache(options => {
-            options.Configuration = "localhost";
+            options.Configuration = "127.0.0.1";
             options.InstanceName = "local";
         });
 
