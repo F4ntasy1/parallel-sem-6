@@ -31,7 +31,7 @@ public class IndexModel : PageModel
         string id = Guid.NewGuid().ToString();
         string region = RegionTypes.COUNTRY_TO_REGION[country];
 
-        int similarity = GetSimilarity(text, region);
+        int similarity = GetSimilarity(text);
 
         repository.StoreText(id, text, region);
 
@@ -56,9 +56,9 @@ public class IndexModel : PageModel
         c.Publish("SimilarityCalculated", msgBytes);
     }
 
-    private int GetSimilarity(string text, string country)
+    private int GetSimilarity(string text)
     {
-        foreach (var value in repository.GetValuesByKey("TEXT", country))
+        foreach (var value in repository.GetValuesByKey("TEXT"))
         {
             if (value == text)
             {

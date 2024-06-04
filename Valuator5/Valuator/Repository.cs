@@ -94,22 +94,23 @@ namespace Valuator
             _regionToDbInstance[region].StringSet($"SIMILARITY-{id}", similarity);
         }
 
-        public List<string> GetValuesByKey(string key, string region) //TEXT-
+        public List<string> GetValuesByKey(string key) //TEXT-
         {
             List<string> result = [];
 
-            var connection = _regionToDbConection[region];
-
-            var keys = connection.GetServer(Environment.GetEnvironmentVariable(region)!).Keys();
-
-            foreach (string? k in keys)
+            foreach (var connection in _regionToDbConection)
             {
-                if (k != null && k.Contains(key))
+                var keys = connection.Value.GetServer(Environment.GetEnvironmentVariable(connection.Key)!).Keys();
+
+                foreach (string? k in keys)
                 {
-                    var val = _regionToDbInstance[region].StringGet(k);
-                    if (!val.IsNull)
+                    if (k != null && k.Contains(key))
                     {
-                        result.Add(val);
+                        var val = _regionToDbInstance[connection.Key].StringGet(k);
+                        if (!val.IsNull)
+                        {
+                            result.Add(val);
+                        }
                     }
                 }
             }
